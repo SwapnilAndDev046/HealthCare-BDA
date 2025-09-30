@@ -24,7 +24,6 @@ export default function Footer() {
                     <h3 className="font-semibold text-foreground">Navigation</h3>
                     <Link href="/" className="text-sm text-muted-foreground hover:text-primary">Home</Link>
                     <Link href="/about" className="text-sm text-muted-foreground hover:text-primary">About</Link>
-                    <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
                 </div>
                 <div className="flex flex-col gap-2">
                     <h3 className="font-semibold text-foreground">Legal</h3>
