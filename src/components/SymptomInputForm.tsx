@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,11 +77,10 @@ export default function SymptomInputForm() {
         };
         
         recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
           toast({
             variant: 'destructive',
             title: 'Speech Recognition Error',
-            description: `An error occurred: ${event.error}. Please try again.`,
+            description: `An error occurred: ${event.error}. Please check your connection and try again.`,
           });
           setIsListening(false);
         };
