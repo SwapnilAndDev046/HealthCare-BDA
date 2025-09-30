@@ -15,9 +15,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { HeartPulse, Mic, MicOff } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { HeartPulse } from 'lucide-react';
+import { useState } from 'react';
 
 const FormSchema = z.object({
   symptoms: z.string().min(10, {
@@ -25,21 +24,9 @@ const FormSchema = z.object({
   }),
 });
 
-// Extend the window type for SpeechRecognition
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 export default function SymptomInputForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(true);
-  const recognitionRef = useRef<any>(null);
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -48,87 +35,8 @@ export default function SymptomInputForm() {
     },
   });
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        setSpeechSupported(true);
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onresult = (event: any) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-          for (let i = 0; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
-            }
-          }
-          const currentSymptoms = form.getValues('symptoms');
-          form.setValue('symptoms', currentSymptoms + finalTranscript + interimTranscript);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-        
-        recognition.onerror = (event: any) => {
-          toast({
-            variant: 'destructive',
-            title: 'Speech Recognition Error',
-            description: `An error occurred: ${event.error}. Please check your connection and microphone permissions.`,
-          });
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      } else {
-        setSpeechSupported(false);
-      }
-    }
-  }, [form, toast]);
-
-  const handleListen = () => {
-    if (!speechSupported) {
-        toast({
-            variant: 'destructive',
-            title: 'Unsupported Browser',
-            description: "Sorry, your browser doesn't support speech recognition.",
-        });
-        return;
-    }
-
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      if(recognitionRef.current) {
-        form.setValue('symptoms', ''); // Clear previous text
-        try {
-          recognitionRef.current?.start();
-          setIsListening(true);
-        } catch (error) {
-            console.error("Could not start recognition:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Could Not Start Listening',
-                description: 'Please ensure microphone permissions are granted and try again.',
-            });
-        }
-      }
-    }
-  };
-
   function onSubmit(data: z.infer<typeof FormSchema>) {
     setIsSubmitting(true);
-    if(isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    }
     const params = new URLSearchParams({ symptoms: data.symptoms });
     router.push(`/recommendations?${params.toString()}`);
   }
@@ -154,13 +62,9 @@ export default function SymptomInputForm() {
           )}
         />
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button type="submit" size="lg" className="w-full font-semibold" disabled={isSubmitting || isListening}>
+          <Button type="submit" size="lg" className="w-full font-semibold" disabled={isSubmitting}>
             <HeartPulse className="mr-2 h-5 w-5" />
             {isSubmitting ? 'Analyzing...' : 'Get Recommendations'}
-          </Button>
-          <Button type="button" size="lg" variant="outline" onClick={handleListen} className="w-full sm:w-auto" disabled={isSubmitting}>
-              {isListening ? <MicOff className="mr-2 h-5 w-5" /> : <Mic className="mr-2 h-5 w-5" />}
-              {isListening ? 'Stop Listening' : 'Use Mic'}
           </Button>
         </div>
       </form>
