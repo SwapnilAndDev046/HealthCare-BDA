@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-health-illustration",
+      "description": "A modern, abstract illustration related to healthcare and technology, featuring soft shapes and a calming color palette.",
+      "imageUrl": "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxoZWFsdGhjYXJlJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3NTkyNTI5NTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "healthcare technology"
+    }
+  ]
 }
