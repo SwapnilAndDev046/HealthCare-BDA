@@ -16,6 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { HeartPulse, Mic, MicOff } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const FormSchema = z.object({
   symptoms: z.string().min(10, {
@@ -35,7 +36,9 @@ export default function SymptomInputForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -48,6 +51,7 @@ export default function SymptomInputForm() {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
+        setSpeechSupported(true);
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
@@ -73,25 +77,48 @@ export default function SymptomInputForm() {
         
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
+          toast({
+            variant: 'destructive',
+            title: 'Speech Recognition Error',
+            description: `An error occurred: ${event.error}. Please try again.`,
+          });
           setIsListening(false);
         };
 
         recognitionRef.current = recognition;
+      } else {
+        setSpeechSupported(false);
       }
     }
-  }, [form]);
+  }, [form, toast]);
 
   const handleListen = () => {
+    if (!speechSupported) {
+        toast({
+            variant: 'destructive',
+            title: 'Unsupported Browser',
+            description: "Sorry, your browser doesn't support speech recognition.",
+        });
+        return;
+    }
+
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
     } else {
       if(recognitionRef.current) {
         form.setValue('symptoms', ''); // Clear previous text
-        recognitionRef.current?.start();
-        setIsListening(true);
-      } else {
-        alert("Sorry, your browser doesn't support speech recognition.");
+        try {
+          recognitionRef.current?.start();
+          setIsListening(true);
+        } catch (error) {
+            console.error("Could not start recognition:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Could Not Start Listening',
+                description: 'Please ensure microphone permissions are granted and try again.',
+            });
+        }
       }
     }
   };
