@@ -68,3 +68,39 @@ const adjustRecommendationsFlow = ai.defineFlow(
   }
 );
 
+const InitialRecommendationsInputSchema = z.object({
+  symptoms: z.string().describe('The symptoms entered by the user.'),
+});
+export type InitialRecommendationsInput = z.infer<typeof InitialRecommendationsInputSchema>;
+
+const InitialRecommendationsOutputSchema = z.array(z.string()).describe('A list of 4-5 potential conditions based on the symptoms.');
+export type InitialRecommendationsOutput = z.infer<typeof InitialRecommendationsOutputSchema>;
+
+
+const generateInitialRecommendationsPrompt = ai.definePrompt({
+  name: 'generateInitialRecommendationsPrompt',
+  input: { schema: InitialRecommendationsInputSchema },
+  output: { schema: InitialRecommendationsOutputSchema },
+  prompt: `You are a helpful medical assistant AI. Based on the following user-provided symptoms, generate a list of 4-5 potential conditions.
+
+Symptoms: {{{symptoms}}}
+
+Return the list as a JSON array of strings.`,
+});
+
+
+const generateInitialRecommendationsFlow = ai.defineFlow(
+  {
+    name: 'generateInitialRecommendationsFlow',
+    inputSchema: InitialRecommendationsInputSchema,
+    outputSchema: InitialRecommendationsOutputSchema,
+  },
+  async (input) => {
+    const { output } = await generateInitialRecommendationsPrompt(input);
+    return output!;
+  }
+);
+
+export async function generateInitialRecommendations(input: InitialRecommendationsInput): Promise<InitialRecommendationsOutput> {
+  return generateInitialRecommendationsFlow(input);
+}

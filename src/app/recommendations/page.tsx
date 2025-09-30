@@ -1,30 +1,12 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { adjustRecommendations } from '@/ai/flows/personalized-recommendation-adjustment';
+import { adjustRecommendations, generateInitialRecommendations } from '@/ai/flows/personalized-recommendation-adjustment';
 import RecommendationCard from '@/components/RecommendationCard';
 import type { Recommendation } from '@/lib/definitions';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Loading from './loading';
-
-// Mock function to simulate fetching initial recommendations from a ML model
-async function getInitialRecommendations(symptoms: string): Promise<string[]> {
-  // In a real app, this would be an API call to a service like PySpark MLlib
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  
-  const lowerSymptoms = symptoms.toLowerCase();
-  if (lowerSymptoms.includes('headache') && lowerSymptoms.includes('fever')) {
-    return ['Migraine', 'Common Cold', 'Flu (Influenza)', 'Sinusitis'];
-  }
-  if (lowerSymptoms.includes('stomach') && (lowerSymptoms.includes('nausea') || lowerSymptoms.includes('pain'))) {
-    return ['Gastroenteritis', 'Food Poisoning', 'Acid Reflux', 'Irritable Bowel Syndrome'];
-  }
-  if (lowerSymptoms.includes('cough') && lowerSymptoms.includes('chest')) {
-      return ['Bronchitis', 'Pneumonia', 'Asthma', 'Common Cold'];
-  }
-  return ['Common Cold', 'Allergies', 'Stress', 'Dehydration'];
-}
 
 // Mock function to simulate getting clustered symptom data
 async function getClusteredSymptomData(symptoms: string): Promise<string> {
@@ -41,7 +23,7 @@ async function getPastResults(symptoms: string): Promise<string> {
 
 async function RecommendationsList({ symptoms }: { symptoms: string }) {
   try {
-    const initialRecommendations = await getInitialRecommendations(symptoms);
+    const initialRecommendations = await generateInitialRecommendations({symptoms});
     const pastResults = await getPastResults(symptoms);
     const clusteredSymptomData = await getClusteredSymptomData(symptoms);
 
