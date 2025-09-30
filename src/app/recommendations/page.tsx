@@ -84,7 +84,7 @@ async function RecommendationsList({ symptoms }: { symptoms: string }) {
   }
 }
 
-export default function RecommendationsPage({
+export default async function RecommendationsPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
