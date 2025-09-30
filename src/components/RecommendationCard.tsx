@@ -93,7 +93,7 @@ export default function RecommendationCard({ recommendation }: RecommendationCar
           </p>
         </div>
       </CardContent>
-      <CardFooter className="flex-col sm:flex-row gap-2">
+      <CardFooter className="flex flex-col gap-2">
         <Button variant="outline" className="w-full" disabled>
           {recommendation.nextSteps}
         </Button>
