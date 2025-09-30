@@ -80,7 +80,7 @@ export default function SymptomInputForm() {
           toast({
             variant: 'destructive',
             title: 'Speech Recognition Error',
-            description: `An error occurred: ${event.error}. Please check your connection and try again.`,
+            description: `An error occurred: ${event.error}. Please check your connection and microphone permissions.`,
           });
           setIsListening(false);
         };
