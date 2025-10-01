@@ -56,6 +56,21 @@ const adjustRecommendationsPrompt = ai.definePrompt({
   `,
 });
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (err.message?.includes('503') && i < retries - 1) {
+        await new Promise(res => setTimeout(res, delayMs));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error('Failed after retries');
+}
+
 const adjustRecommendationsFlow = ai.defineFlow(
   {
     name: 'adjustRecommendationsFlow',
@@ -63,7 +78,7 @@ const adjustRecommendationsFlow = ai.defineFlow(
     outputSchema: AdjustRecommendationsOutputSchema,
   },
   async input => {
-    const {output} = await adjustRecommendationsPrompt(input);
+    const {output} = await withRetry(() => adjustRecommendationsPrompt(input));
     return output!;
   }
 );
@@ -96,7 +111,7 @@ const generateInitialRecommendationsFlow = ai.defineFlow(
     outputSchema: InitialRecommendationsOutputSchema,
   },
   async (input) => {
-    const { output } = await generateInitialRecommendationsPrompt(input);
+    const { output } = await withRetry(() => generateInitialRecommendationsPrompt(input));
     return output!;
   }
 );
